@@ -1,0 +1,209 @@
+#!/usr/bin/env sh
+set -eu
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  ai-scaffold --target PATH [--tool defaults|ask|claude|codex|gemini|cursor|windsurf] [--skills latest|skip]
+
+Examples:
+  ./bin/ai-scaffold --target ../my-repo --tool defaults --skills latest
+  ./bin/ai-scaffold --target ../my-repo --tool ask --skills skip
+  ./bin/ai-scaffold --target ../my-repo --tool codex --skills latest \
+    --caveman-url https://example.com/caveman.md \
+    --ponytail-url https://example.com/ponytail.md
+
+Environment:
+  CAVEMAN_SKILL_URL    Remote or file:// URL for latest caveman skill Markdown.
+  PONYTAIL_SKILL_URL   Remote or file:// URL for latest ponytail skill Markdown.
+USAGE
+}
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SOURCE_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+TARGET=""
+TOOL="defaults"
+SKILLS="latest"
+DEFAULT_CAVEMAN_URL="https://raw.githubusercontent.com/JuliusBrussee/caveman/main/skills/caveman/SKILL.md"
+DEFAULT_PONYTAIL_URL="https://raw.githubusercontent.com/DietrichGebert/ponytail/main/skills/ponytail/SKILL.md"
+CAVEMAN_URL=${CAVEMAN_SKILL_URL:-$DEFAULT_CAVEMAN_URL}
+PONYTAIL_URL=${PONYTAIL_SKILL_URL:-$DEFAULT_PONYTAIL_URL}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --target)
+      TARGET=${2:-}
+      shift 2
+      ;;
+    --tool)
+      TOOL=${2:-}
+      shift 2
+      ;;
+    --skills)
+      SKILLS=${2:-}
+      shift 2
+      ;;
+    --caveman-url)
+      CAVEMAN_URL=${2:-}
+      shift 2
+      ;;
+    --ponytail-url)
+      PONYTAIL_URL=${2:-}
+      shift 2
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "error: unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$TARGET" ]; then
+  echo "error: --target is required" >&2
+  usage >&2
+  exit 1
+fi
+
+if [ ! -d "$TARGET" ]; then
+  echo "error: target does not exist: $TARGET" >&2
+  exit 1
+fi
+
+copy_ai() {
+  mkdir -p "$TARGET/.ai"
+  cp -R "$SOURCE_ROOT/.ai/." "$TARGET/.ai/"
+  chmod +x "$TARGET/.ai/hooks/pre-eval.sh"
+}
+
+download_skill() {
+  name=$1
+  url=$2
+  output="$TARGET/.ai/skills/$name.md"
+
+  if [ -z "$url" ]; then
+    echo "error: missing URL for $name skill" >&2
+    echo "hint: pass --${name}-url or set $(printf '%s_SKILL_URL' "$name" | tr '[:lower:]' '[:upper:]')" >&2
+    exit 1
+  fi
+
+  mkdir -p "$TARGET/.ai/skills"
+
+  case "$url" in
+    file://*)
+      path=${url#file://}
+      if [ ! -f "$path" ]; then
+        echo "error: $name skill file not found: $path" >&2
+        exit 1
+      fi
+      cp "$path" "$output"
+      ;;
+    http://*|https://*)
+      if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$url" -o "$output"
+      elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$output" "$url"
+      else
+        echo "error: curl or wget is required to download $name skill" >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "error: unsupported URL for $name skill: $url" >&2
+      echo "hint: use https://... or file:///absolute/path" >&2
+      exit 1
+      ;;
+  esac
+
+  if [ ! -s "$output" ]; then
+    echo "error: downloaded $name skill is empty: $output" >&2
+    exit 1
+  fi
+}
+
+install_skills() {
+  case "$SKILLS" in
+    latest)
+      download_skill caveman "$CAVEMAN_URL"
+      download_skill ponytail "$PONYTAIL_URL"
+      ;;
+    skip)
+      ;;
+    *)
+      echo "error: unsupported --skills value: $SKILLS" >&2
+      exit 1
+      ;;
+  esac
+}
+
+install_claude() {
+  cp "$SOURCE_ROOT/.ai/templates/CLAUDE.md" "$TARGET/CLAUDE.md"
+}
+
+install_codex() {
+  cp "$SOURCE_ROOT/.ai/templates/AGENTS.md" "$TARGET/AGENTS.md"
+}
+
+install_gemini() {
+  cp "$SOURCE_ROOT/.ai/templates/GEMINI.md" "$TARGET/GEMINI.md"
+}
+
+install_cursor() {
+  mkdir -p "$TARGET/.cursor/rules"
+  cp "$SOURCE_ROOT/.ai/templates/cursor-rules.md" "$TARGET/.cursor/rules/local-llm-orchestrator.md"
+}
+
+install_windsurf() {
+  mkdir -p "$TARGET/.windsurf/rules"
+  cp "$SOURCE_ROOT/.ai/templates/windsurf-rules.md" "$TARGET/.windsurf/rules/local-llm-orchestrator.md"
+}
+
+install_tool() {
+  case "$1" in
+    claude) install_claude ;;
+    codex) install_codex ;;
+    gemini) install_gemini ;;
+    cursor) install_cursor ;;
+    windsurf) install_windsurf ;;
+    *)
+      echo "error: unsupported tool: $1" >&2
+      exit 1
+      ;;
+  esac
+}
+
+copy_ai
+install_skills
+
+case "$TOOL" in
+  defaults)
+    install_claude
+    install_codex
+    install_gemini
+    install_cursor
+    install_windsurf
+    ;;
+  ask)
+    printf "Install adapters for claude,codex,gemini,cursor,windsurf? [Y/n] "
+    read answer
+    case "$answer" in
+      n|N|no|NO) ;;
+      *) install_claude; install_codex; install_gemini; install_cursor; install_windsurf ;;
+    esac
+    ;;
+  claude|codex|gemini|cursor|windsurf)
+    install_tool "$TOOL"
+    ;;
+  *)
+    echo "error: unsupported --tool value: $TOOL" >&2
+    exit 1
+    ;;
+esac
+
+echo "installed .ai orchestration files into $TARGET"
+echo "tool adapter: $TOOL"
+echo "skills: $SKILLS"

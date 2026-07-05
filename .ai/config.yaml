@@ -1,0 +1,93 @@
+# Local LLM Orchestrator configuration.
+# Edit model identifiers to match the local CLI or provider adapter you use.
+
+version: 1
+
+philosophy:
+  state: filesystem
+  dependencies: zero
+  context_policy: "Prefer durable Markdown state over transcript memory."
+
+models:
+  router:
+    provider: anthropic
+    model: fable-5
+    role: "zero-thought routing only"
+    allow_reasoning_output: false
+  worker:
+    provider: anthropic
+    model: haiku
+    role: "bounded tool execution and mechanical edits"
+  synthesizer:
+    provider: anthropic
+    model: sonnet
+    role: "state compression, review, and next-action synthesis"
+  architect:
+    provider: anthropic
+    model: opus
+    role: "optional high-risk architecture review"
+    enabled: false
+
+routes:
+  search:
+    model_role: worker
+    skill: caveman
+  mechanical_edit:
+    model_role: worker
+    skill: ponytail
+  boilerplate:
+    model_role: worker
+    skill: ponytail
+  test:
+    model_role: worker
+    skill: caveman
+  format:
+    model_role: worker
+    skill: caveman
+  state_update:
+    model_role: synthesizer
+    skill: caveman
+  review:
+    model_role: synthesizer
+    skill: ponytail
+  architecture:
+    model_role: architect
+    fallback_model_role: synthesizer
+    skill: ponytail
+
+skills:
+  caveman:
+    target: ".ai/skills/caveman.md"
+    default_url: "https://raw.githubusercontent.com/JuliusBrussee/caveman/main/skills/caveman/SKILL.md"
+    source_env: CAVEMAN_SKILL_URL
+    install: "bin/ai-scaffold --skills latest --caveman-url <url>"
+  ponytail:
+    target: ".ai/skills/ponytail.md"
+    default_url: "https://raw.githubusercontent.com/DietrichGebert/ponytail/main/skills/ponytail/SKILL.md"
+    source_env: PONYTAIL_SKILL_URL
+    install: "bin/ai-scaffold --skills latest --ponytail-url <url>"
+
+tools:
+  defaults:
+    - claude
+    - codex
+    - gemini
+    - cursor
+    - windsurf
+  claude:
+    instruction_file: CLAUDE.md
+  codex:
+    instruction_file: AGENTS.md
+  gemini:
+    instruction_file: GEMINI.md
+  cursor:
+    instruction_file: .cursor/rules/local-llm-orchestrator.md
+  windsurf:
+    instruction_file: .windsurf/rules/local-llm-orchestrator.md
+
+loop:
+  hook: ".ai/hooks/pre-eval.sh"
+  memory: ".ai/memory.md"
+  router: ".ai/router.md"
+  max_iterations: 12
+  stop_when_blocked: true
