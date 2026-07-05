@@ -1,5 +1,7 @@
 # Suture
 
+![Suture orchestration loop](assets/suture-loop.svg)
+
 Suture is a zero-dependency `.ai/` control plane for autonomous coding agents. It is designed to be copied into any repository and used with Claude Code, Codex, Gemini CLI, Cursor, Windsurf, or any other local agent runner that can read Markdown instructions and execute shell hooks.
 
 The project treats the filesystem as the API. Prompts, state, routing policy, task memory, and tool-specific adapters are all plain files. There is no daemon, database, SDK, or vendor lock-in.
