@@ -3,7 +3,7 @@ set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 SCAFFOLD="$ROOT_DIR/bin/ai-scaffold"
-TMP_ROOT=${TMPDIR:-/tmp}/local-llm-orchestrator-tests-$$
+TMP_ROOT=${TMPDIR:-/tmp}/suture-tests-$$
 PASS_COUNT=0
 
 cleanup() {
@@ -68,8 +68,8 @@ test_defaults_install_all_tool_adapters_without_skills() {
   assert_file "$target/CLAUDE.md"
   assert_file "$target/AGENTS.md"
   assert_file "$target/GEMINI.md"
-  assert_file "$target/.cursor/rules/local-llm-orchestrator.md"
-  assert_file "$target/.windsurf/rules/local-llm-orchestrator.md"
+  assert_file "$target/.cursor/rules/suture.md"
+  assert_file "$target/.windsurf/rules/suture.md"
   assert_executable "$target/.ai/hooks/pre-eval.sh"
   assert_no_file "$target/.ai/skills/caveman.md"
   assert_no_file "$target/.ai/skills/ponytail.md"
@@ -152,7 +152,7 @@ test_pre_eval_hook_runs_after_scaffold() {
   "$SCAFFOLD" --target "$target" --tool codex --skills skip >"$TMP_ROOT/hook-install.out"
   "$target/.ai/hooks/pre-eval.sh" "$target" >"$TMP_ROOT/pre-eval.out"
 
-  assert_contains "$TMP_ROOT/pre-eval.out" "local-llm-orchestrator: pre-eval"
+  assert_contains "$TMP_ROOT/pre-eval.out" "suture: pre-eval"
   assert_contains "$TMP_ROOT/pre-eval.out" "=== routing payload ==="
   pass "pre-eval hook runs after scaffold"
 }

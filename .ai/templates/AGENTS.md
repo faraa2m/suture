@@ -1,4 +1,4 @@
-# Local LLM Orchestrator Adapter
+# Suture Adapter
 
 This repository uses `.ai/` as the agent control plane.
 

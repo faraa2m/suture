@@ -1,4 +1,4 @@
-# Local LLM Orchestrator Adapter
+# Suture Adapter
 
 Use `.ai/` as the local orchestration layer.
 

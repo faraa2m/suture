@@ -1,4 +1,4 @@
-# Local LLM Orchestrator Adapter
+# Suture Adapter
 
 This project keeps agent state in `.ai/`.
 

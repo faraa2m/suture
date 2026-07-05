@@ -1,6 +1,6 @@
-# Local LLM Orchestrator
+# Suture
 
-Local LLM Orchestrator is a zero-dependency `.ai/` control plane for autonomous coding agents. It is designed to be copied into any repository and used with Claude Code, Codex, Gemini CLI, Cursor, Windsurf, or any other local agent runner that can read Markdown instructions and execute shell hooks.
+Suture is a zero-dependency `.ai/` control plane for autonomous coding agents. It is designed to be copied into any repository and used with Claude Code, Codex, Gemini CLI, Cursor, Windsurf, or any other local agent runner that can read Markdown instructions and execute shell hooks.
 
 The project treats the filesystem as the API. Prompts, state, routing policy, task memory, and tool-specific adapters are all plain files. There is no daemon, database, SDK, or vendor lock-in.
 
@@ -21,7 +21,7 @@ The result is a common failure mode: premium tokens are burned on low-value exec
 
 ## The Solution
 
-Local LLM Orchestrator separates routing, execution, and synthesis into explicit roles.
+Suture separates routing, execution, and synthesis into explicit roles.
 
 ### Fable 5 as the Orchestrator
 
@@ -94,7 +94,7 @@ Any agent CLI can participate by reading these files and writing back terse stat
 Copy `.ai/` into an existing repository:
 
 ```sh
-cp -R /path/to/local-llm-orchestrator/.ai /path/to/your-repo/.ai
+cp -R /path/to/suture/.ai /path/to/your-repo/.ai
 ```
 
 Or use the scaffold helper from this repository:
@@ -141,7 +141,7 @@ Tool adapters are intentionally small. They point the local agent at `.ai/router
 
 `caveman` and `ponytail` are treated as externally owned skills. The scaffold downloads their latest Markdown at install time instead of shipping hand-written copies in this repository.
 
-Both upstream repositories already use a strong cross-harness structure: agent instructions, skill manifests, command hooks, and adapters for common coding environments live close to the skill source. Local LLM Orchestrator leans on that structure instead of reimplementing it. The `.ai/` control plane mounts the latest skill Markdown and lets Claude Code, Codex, Gemini, Cursor, Windsurf, and similar harnesses consume the same policy through their native instruction files.
+Both upstream repositories already use a strong cross-harness structure: agent instructions, skill manifests, command hooks, and adapters for common coding environments live close to the skill source. Suture leans on that structure instead of reimplementing it. The `.ai/` control plane mounts the latest skill Markdown and lets Claude Code, Codex, Gemini, Cursor, Windsurf, and similar harnesses consume the same policy through their native instruction files.
 
 Default sources:
 

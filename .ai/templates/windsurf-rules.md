@@ -1,4 +1,4 @@
-# Local LLM Orchestrator
+# Suture
 
 - Use `.ai/` as the orchestration source.
 - Read `.ai/router.md` and `.ai/memory.md` before autonomous loops.

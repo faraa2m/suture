@@ -36,7 +36,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
   exit 1
 fi
 
-echo "local-llm-orchestrator: pre-eval"
+echo "suture: pre-eval"
 echo "root: $ROOT_DIR"
 echo "router: $ROUTER_FILE"
 echo "memory: $MEMORY_FILE"

@@ -154,12 +154,12 @@ install_gemini() {
 
 install_cursor() {
   mkdir -p "$TARGET/.cursor/rules"
-  cp "$SOURCE_ROOT/.ai/templates/cursor-rules.md" "$TARGET/.cursor/rules/local-llm-orchestrator.md"
+  cp "$SOURCE_ROOT/.ai/templates/cursor-rules.md" "$TARGET/.cursor/rules/suture.md"
 }
 
 install_windsurf() {
   mkdir -p "$TARGET/.windsurf/rules"
-  cp "$SOURCE_ROOT/.ai/templates/windsurf-rules.md" "$TARGET/.windsurf/rules/local-llm-orchestrator.md"
+  cp "$SOURCE_ROOT/.ai/templates/windsurf-rules.md" "$TARGET/.windsurf/rules/suture.md"
 }
 
 install_tool() {
